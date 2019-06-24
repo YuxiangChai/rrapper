@@ -205,7 +205,7 @@ def configure_test(name, mutator, verbosity, trace_line=0, sniplen=5):
 
     if mutator:
       #config.set("request_handling_process", "mutator", args.mutator)
-      # use the mutator to identify the line we are interested in
+      # use the mutator to identify the line we are interested in
       identify_mutator = eval(mutator)
       pickle_file = consts.DEFAULT_CONFIG_PATH + 'syscall_definitions.pickle'
       syscalls = Trace.Trace(test_dir + consts.STRACE_DEFAULT, pickle_file).syscalls
@@ -214,9 +214,13 @@ def configure_test(name, mutator, verbosity, trace_line=0, sniplen=5):
       for i in range(len(syscalls)):
         if 'syscall_' in syscalls[i].name:
           break
+
+      off_set = i
       syscalls=syscalls[i:]
 
       lines = identify_mutator.identify_lines(syscalls)
+      for i in range(len(lines)):
+        lines[i] += off_set
 
       lines_count = len(lines)
 
