@@ -51,3 +51,33 @@ class UnusualFiletypeMutator(GenericMutator):
           if self.name != v.args[0].value:
             continue
         lines.append(k)
+
+  def error_message(self, args):
+    print('{} may behave unexpectedly when running in Linux environments
+    where {} is not a regular file.'.format(args[0]['test_name'],
+        args[0]['filename'])
+
+  def explain_message(self, args):
+    print('Message: "{} may encounter problems in Linux environments where
+    {} is not a regular file."
+
+    CrashSimulator has identified that {} does not recognize situations
+    where it has been simulated
+    that {} is not a regular file.  This is problematic in Linux
+    environments where {}
+    is supplied by (or may be manipulated by) {}\'s user.  {} should be
+    modified to use a call from the
+    "stat" family to gather information about {} before processing
+    it.  Failure to do so could
+    result in {} crashing, hanging, or exhausing system
+    resources.'.format(args[0]['test_name'], args[0]['filename'],
+        args[0]['test_name'], args[0]['filename'], args[0]['filename'],
+        args[0]['test_name'], args[0]['test_name'], args[0]['filename'],
+        args[0]['test_name']) 
+    print('This report was made because CrashSimulator identified the following
+    issues:')
+    for i in range(len(args)):
+      print('(At event {}): {} doesn\'t recognize when {} is
+      a {}'.format(args[i]['event'], args[i]['test_name'],
+          args[i]['file_type'])
+    print('These issues were found by: "Unusual Filetype Mutator"')
