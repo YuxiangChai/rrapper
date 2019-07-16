@@ -13,7 +13,6 @@ import syscallreplay
 
 from inject import exit_with_status
 from inject import apply_mmap_backing_files
-from inject import apply_open_fds
 from inject import consume_configuration
 from inject import parse_backing_files
 from inject import debug_handle_syscall
@@ -40,9 +39,9 @@ class TestExitWithStatusTestCase(unittest.TestCase):
 
         pid = 555
         exit_status = 0
-        mutator = 'src.mutator.ReverseTime.ReverseTimeMutator'
-        event = 100
-        index = 2
+        event = 140
+        index = 26
+        mutator = '<src.mutator.Null.NullMutator instance at 0xb736808c>'
         exit_with_status(pid, exit_status, mutator, event, index)
         mock__kill_parent_process.assert_called_with(pid)
         mock_exit.assert_called_with(exit_status)
@@ -63,9 +62,9 @@ class TestExitWithStatusTestCase(unittest.TestCase):
 
         pid = 555
         exit_status = -1
-        mutator = 'src.mutator.ReverseTime.ReverseTimeMutator'
-        event = 100
-        index = 2
+        event = 150
+        index = 26
+        mutator = '<src.mutator.Null.NullMutator instance at 0xb736808c>'
         exit_with_status(pid, exit_status, mutator, event, index)
         mock__kill_parent_process.assert_called_with(pid)
         mock_exit.assert_called_with(exit_status)
@@ -85,7 +84,7 @@ class TestApplyMmapBackingFilesTestCase(unittest.TestCase):
         """ Test applying mmap backing file configuration
         """
 
-        mock_sr.injected_state = {'config': {'mmap_backing_files': '1:/test'}}
+        mock_sr.injected_state = {'mmap_backing_files': '1:/test'}
         apply_mmap_backing_files()
         mock_parse_backing_files.assert_called_with('1:/test')
 
@@ -97,23 +96,9 @@ class TestApplyMmapBackingFilesTestCase(unittest.TestCase):
         """ Test not applying backing files when they are not present
         """
 
-        mock_syscallreplay.injected_state = {'config': {}}
+        mock_syscallreplay.injected_state = {}
         apply_mmap_backing_files()
         mock_parse_backing_files.assert_not_called()
-
-
-class TestApplyOpenFds(unittest.TestCase):
-    """ Test applying open fds to the correct spot in injected_state
-    """
-
-    @mock.patch('inject.syscallreplay', spec=['injected_state'])
-    def test_apply_openfds(self, mock_sr):
-        """ Make sure open fds are applied correctly
-        """
-
-        mock_sr.injected_state = {'open_fds': {'1111': [1]}}
-        apply_open_fds('1111')
-        self.assertEqual(cmp(mock_sr.injected_state['open_fds'], [1]), 0)
 
 
 class TestConsumeConfiguration(unittest.TestCase):
@@ -122,8 +107,9 @@ class TestConsumeConfiguration(unittest.TestCase):
 
     @mock.patch('__builtin__.open')
     @mock.patch('json.load')
+    @mock.patch('os.path.exists', return_value=False)
     @mock.patch('os.remove')
-    def test_consume_configuration(self, mock_remove, mock_load, mock_open):
+    def test_consume_configuration(self, mock_remove, mock_exists, mock_load, mock_open):
         """ Ensure file is opened with read, loaded as json, and removed
         """
         config_file = 'config.json'
